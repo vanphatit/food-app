@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "391854530472",
+    "firebase_url": "https://food-app-phatlee-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "food-app-phatlee",
+    "storage_bucket": "food-app-phatlee.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:391854530472:android:bf28347236bfdeb19dc79d",
+        "android_client_info": {
+          "package_name": "com.phatlee.food_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9mz41O9kh8C0K7Z8WNX_-qL47c-B2f5M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
