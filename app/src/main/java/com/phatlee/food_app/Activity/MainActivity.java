@@ -38,7 +38,6 @@ public class MainActivity extends BaseActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-
         initLocation();
         initTime();
         initPrice();
@@ -64,6 +63,8 @@ public class MainActivity extends BaseActivity {
         });
 
         binding.cartBtn.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, CartActivity.class)));
+
+        binding.txvProfile.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, MyProfileActivity.class)));
     }
 
     private void initBestFood() {
@@ -189,10 +190,5 @@ public class MainActivity extends BaseActivity {
 
             }
         });
-    }
-
-    @Override
-    public void onBackPressed() {
-
     }
 }
