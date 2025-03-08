@@ -16,9 +16,11 @@ public class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Khởi tạo Firebase
         database = FirebaseDatabase.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
+        // Đổi màu status bar
         getWindow().setStatusBarColor(getResources().getColor(R.color.white));
     }
 }

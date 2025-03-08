@@ -2,19 +2,18 @@ package com.phatlee.food_app.Activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import com.phatlee.food_app.R;
+import com.phatlee.food_app.Database.AppDatabase;
+import com.phatlee.food_app.Entity.User;
 import com.phatlee.food_app.databinding.ActivityLoginBinding;
+import android.content.SharedPreferences;
 
-public class LoginActivity extends BaseActivity {
+public class LoginActivity extends AppCompatActivity {
     ActivityLoginBinding binding;
+    private AppDatabase db;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,25 +21,41 @@ public class LoginActivity extends BaseActivity {
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        setVariable();
+        db = AppDatabase.getInstance(this);
+        sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE);
 
+        setVariable();
     }
 
     private void setVariable() {
         binding.loginBtn.setOnClickListener(v -> {
-            String email = binding.userEdt.getText().toString();
-            String password = binding.passEdt.getText().toString();
-            if(!email.isEmpty() && !password.isEmpty()){
-                mAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(LoginActivity.this, task -> {
-                    if(task.isSuccessful()){
+            String email = binding.userEdt.getText().toString().trim();
+            String password = binding.passEdt.getText().toString().trim();
+
+            if(email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            new Thread(() -> {
+                User user = db.userDao().login(email, password);
+                runOnUiThread(() -> {
+                    if (user != null) {
+                        sharedPreferences.edit().putInt("user_id", user.id).apply();
+                        String user_name = user.name.replace("@gmail.com", "");
+                        sharedPreferences.edit().putString("user_name",user_name).apply();
+                        Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        finish();
                     } else {
-                        Toast.makeText(LoginActivity.this, "Authentication failed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, "Invalid email or password!", Toast.LENGTH_SHORT).show();
                     }
                 });
-            } else {
-                Toast.makeText(LoginActivity.this, "Please fill username and password", Toast.LENGTH_SHORT).show();
-            }
+            }).start();
         });
+
+        binding.txvSignup.setOnClickListener(
+                v -> startActivity(
+                        new Intent(LoginActivity.this, SignupActivity.class)));
     }
 }

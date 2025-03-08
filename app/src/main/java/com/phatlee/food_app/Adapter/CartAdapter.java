@@ -1,81 +1,117 @@
 package com.phatlee.food_app.Adapter;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.phatlee.food_app.Domain.Foods;
+import com.phatlee.food_app.Activity.CartActivity;
+import com.phatlee.food_app.Database.AppDatabase;
+import com.phatlee.food_app.Entity.Cart;
+import com.phatlee.food_app.Entity.Foods;
 import com.phatlee.food_app.Helper.ChangeNumberItemsListener;
-import com.phatlee.food_app.Helper.ManagmentCart;
 import com.phatlee.food_app.R;
+import java.util.List;
+import java.util.concurrent.Executors;
 
-import java.util.ArrayList;
+public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
+    private List<Cart> cartList;
+    private Context context;
+    private ChangeNumberItemsListener changeNumberItemsListener;
+    private SharedPreferences sharedPreferences;
 
-public class CartAdapter extends RecyclerView.Adapter<CartAdapter.viewholder> {
-    ArrayList<Foods> list;
-    private ManagmentCart managmentCart;
-    ChangeNumberItemsListener changeNumberItemsListener;
-
-    public CartAdapter(ArrayList<Foods> list, Context context, ChangeNumberItemsListener changeNumberItemsListener) {
-        this.list = list;
-        managmentCart = new ManagmentCart(context);
+    public CartAdapter(List<Cart> cartList, Context context, ChangeNumberItemsListener changeNumberItemsListener) {
+        this.cartList = cartList;
+        this.context = context;
         this.changeNumberItemsListener = changeNumberItemsListener;
     }
 
     @NonNull
     @Override
-    public CartAdapter.viewholder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View inflate = LayoutInflater.from(parent.getContext()).inflate(R.layout.viewholder_cart, parent, false);
-        return new viewholder(inflate);
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.viewholder_cart, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CartAdapter.viewholder holder, int position) {
-        holder.title.setText(list.get(position).getTitle());
-        holder.feeEachItem.setText("$"+(list.get(position).getNumberInCart()*list.get(position).getPrice()));
-        holder.totalEachItem.setText(list.get(position).getNumberInCart()+" * $"+(list.get(position).getPrice()));
-        holder.num.setText(list.get(position).getNumberInCart()+"");
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Cart cartItem = cartList.get(position);
 
-        // Lấy ID ảnh từ drawable/food/
-        int imageResId = holder.itemView.getContext().getResources().getIdentifier(
-                "food_" + list.get(position).getImagePath(), "drawable", holder.itemView.getContext().getPackageName());
+        Executors.newSingleThreadExecutor().execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(context);
+            Foods food = db.foodsDao().getFoodById(cartItem.foodId);
 
-        if (imageResId != 0) {
-            holder.pic.setImageResource(imageResId);
-        } else {
-            holder.pic.setImageResource(R.drawable.logo); // Nếu không tìm thấy ảnh
-        }
+            ((CartActivity) context).runOnUiThread(() -> {
+                if (food != null) {
+                    holder.title.setText(food.getTitle());
+                    holder.feeEachItem.setText("$" + (cartItem.quantity * food.getPrice()));
+                    holder.totalEachItem.setText(cartItem.quantity + " * $" + food.getPrice());
+                    holder.num.setText(String.valueOf(cartItem.quantity));
 
-        holder.plusItem.setOnClickListener(v -> managmentCart.plusNumberItem(list, position, () -> {
-            notifyDataSetChanged();
-            changeNumberItemsListener.change();
-        }));
+                    int imageResId = context.getResources().getIdentifier("food_" + food.getImagePath(), "drawable", context.getPackageName());
+                    holder.pic.setImageResource(imageResId != 0 ? imageResId : R.drawable.logo);
 
-        holder.minusItem.setOnClickListener(v -> managmentCart.minusNumberItem(list, position, () -> {
-            notifyDataSetChanged();
-            changeNumberItemsListener.change();
-        }));
+                    holder.plusItem.setOnClickListener(v -> updateCart(cartItem, cartItem.quantity + 1));
+                    holder.minusItem.setOnClickListener(v -> {
+                        updateCart(cartItem, cartItem.quantity - 1);
+                    });
+                }
+            });
+        });
+    }
+
+    private void updateCart(Cart cartItem, int newQuantity) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(context);
+            sharedPreferences = context.getSharedPreferences("UserSession", MODE_PRIVATE);
+            int userId = sharedPreferences.getInt("user_id", -1);
+
+            if (newQuantity <= 0) {
+                db.cartDao().removeFromCart(userId, cartItem.foodId);
+                cartList.remove(cartItem);
+            } else {
+                db.cartDao().update(new Cart(userId, cartItem.foodId, newQuantity));
+                cartItem.quantity = newQuantity;
+            }
+
+            ((CartActivity) context).runOnUiThread(() -> {
+                notifyDataSetChanged();
+                changeNumberItemsListener.change();
+            });
+        });
+    }
+
+    private void removeFromCart(Cart cartItem) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(context);
+            db.cartDao().removeFromCart(cartItem.userId, cartItem.foodId);
+            cartList.remove(cartItem);
+
+            ((CartActivity) context).runOnUiThread(() -> {
+                notifyDataSetChanged();
+                changeNumberItemsListener.change();
+            });
+        });
     }
 
     @Override
     public int getItemCount() {
-        return list.size();
+        return cartList.size();
     }
 
-    public class viewholder extends RecyclerView.ViewHolder {
-        TextView title, feeEachItem, plusItem, minusItem;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView title, feeEachItem, plusItem, minusItem, totalEachItem, num;
         ImageView pic;
-        TextView totalEachItem, num;
 
-        public viewholder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
-
             title = itemView.findViewById(R.id.titleTxt);
             pic = itemView.findViewById(R.id.pic);
             feeEachItem = itemView.findViewById(R.id.feeEachItem);

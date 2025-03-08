@@ -13,16 +13,17 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.phatlee.food_app.Activity.DetailActivity;
-import com.phatlee.food_app.Domain.Foods;
+import com.phatlee.food_app.Entity.Foods;
 import com.phatlee.food_app.R;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.viewholder> {
-    ArrayList<Foods> items;
+    List<Foods> items;
     Context context;
 
-    public FoodListAdapter(ArrayList<Foods> items) {
+    public FoodListAdapter(List<Foods> items) {
         this.items = items;
     }
 

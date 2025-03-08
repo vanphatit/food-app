@@ -34,7 +34,7 @@
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/constraintLayout2"
                         android:layout_width="match_parent"
-                        android:layout_height="360dp"
+                        android:layout_height="400dp"
                         android:background="@drawable/top_background"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -44,24 +44,27 @@
                             android:id="@+id/imageView12"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            app:srcCompat="@drawable/circles" />
+                            app:srcCompat="@drawable/circles"
+                            tools:layout_editor_absoluteX="0dp"
+                            tools:layout_editor_absoluteY="-2dp" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <ImageView
                         android:id="@+id/imageView5"
                         android:layout_width="wrap_content"
                         android:layout_height="120dp"
-                        android:layout_marginTop="32dp"
+                        android:layout_marginTop="52dp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:srcCompat="@drawable/lvphat" />
 
-                    <TextView
+                    <EditText
                         android:id="@+id/textView10"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
+                        android:background="@null"
                         android:text="Phat Lee"
                         android:textColor="#ffffff"
                         android:textSize="20sp"
@@ -87,7 +90,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="24dp"
-                        android:layout_marginTop="24dp"
+                        android:layout_marginTop="44dp"
                         android:padding="8dp"
 
                         app:tint="@color/white"
@@ -97,7 +100,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="450dp"
+                        android:layout_height="400dp"
                         android:layout_marginStart="34dp"
                         android:layout_marginTop="60dp"
                         android:layout_marginEnd="34dp"
@@ -256,11 +259,12 @@
                                 android:textColor="#182693"
                                 android:textSize="18sp" />
 
-                            <TextView
+                            <EditText
                                 android:id="@+id/textView25"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
+                                android:background="@null"
                                 android:text="Change"
                                 android:textAlignment="viewEnd"
                                 android:textColor="#5B5B5B"
@@ -291,11 +295,12 @@
                                 android:textColor="#182693"
                                 android:textSize="18sp" />
 
-                            <TextView
+                            <EditText
                                 android:id="@+id/textView26"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
+                                android:background="@null"
                                 android:text="085XXXXXXX"
                                 android:textAlignment="viewEnd"
                                 android:textColor="#5B5B5B"
@@ -326,11 +331,12 @@
                                 android:textColor="#182693"
                                 android:textSize="18sp" />
 
-                            <TextView
+                            <EditText
                                 android:id="@+id/textView27"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
+                                android:background="@null"
                                 android:text="Thu Duc, HCM"
                                 android:textAlignment="viewEnd"
                                 android:textColor="#5B5B5B"
@@ -339,41 +345,6 @@
 
                         <View
                             android:id="@+id/view7"
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginHorizontal="30dp"
-                            android:layout_marginVertical="10dp"
-                            android:background="#D9D9D9" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="20dp"
-                            android:layout_marginVertical="10dp"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/textView30"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Point earned"
-                                android:textColor="#182693"
-                                android:textSize="18sp" />
-
-                            <TextView
-                                android:id="@+id/textView31"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="2000"
-                                android:textAlignment="viewEnd"
-                                android:textColor="#5B5B5B"
-                                android:textSize="16sp" />
-                        </LinearLayout>
-
-                        <View
-                            android:id="@+id/view8"
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
                             android:layout_marginHorizontal="30dp"

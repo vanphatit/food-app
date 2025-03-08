@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="15dp"
+    app:cardElevation="3dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <!-- Mã đơn hàng -->
+        <TextView
+            android:id="@+id/orderIdTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Order #1234"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Ngày đặt hàng -->
+        <TextView
+            android:id="@+id/orderDateTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2025-03-08"
+            android:textSize="14sp"
+            android:textColor="@color/blue_grey"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/orderIdTxt"
+            android:layout_marginTop="4dp" />
+
+        <!-- Trạng thái đơn hàng -->
+        <TextView
+            android:id="@+id/orderStatusTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pending"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/red"
+            app:layout_constraintStart_toEndOf="@id/orderIdTxt"
+            app:layout_constraintTop_toTopOf="@id/orderIdTxt"
+            android:layout_marginStart="12dp" />
+
+        <!-- Tổng giá đơn hàng -->
+        <TextView
+            android:id="@+id/orderTotalPriceTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="$29.99"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/red"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/orderIdTxt" />
+
+        <!-- RecyclerView danh sách món ăn -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/orderItemsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/orderDateTxt"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

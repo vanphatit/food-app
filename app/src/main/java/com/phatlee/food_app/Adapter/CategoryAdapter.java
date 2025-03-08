@@ -13,16 +13,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.phatlee.food_app.Activity.ListFoodsActivity;
-import com.phatlee.food_app.Domain.Category;
+import com.phatlee.food_app.Activity.MainActivity;
+import com.phatlee.food_app.Database.AppDatabase;
+import com.phatlee.food_app.Entity.Category;
 import com.phatlee.food_app.R;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.viewholder> {
-    ArrayList<Category> items;
+    List<Category> items;
     Context context;
 
-    public CategoryAdapter(ArrayList<Category> items) {
+    public CategoryAdapter(List<Category> items) {
         this.items = items;
     }
 
@@ -73,8 +76,8 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.viewho
                 break;
             }
         }
-        int drawableResourceId = context.getResources().getIdentifier(items.get(position).getImagePath()
-                , "drawable", holder.itemView.getContext().getPackageName());
+        int drawableResourceId = context.getResources().getIdentifier(items.get(position).getImagePath(),
+                "drawable", holder.itemView.getContext().getPackageName());
         Glide.with(context)
                 .load(drawableResourceId)
                 .into(holder.pic);
@@ -91,6 +94,20 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.viewho
     public int getItemCount() {
         return items.size();
     }
+
+    public void loadCategories(Context context) {
+        new Thread(() -> {
+            AppDatabase db = AppDatabase.getInstance(context);
+            List<Category> categories = db.categoryDao().getAllCategories();
+
+            ((MainActivity) context).runOnUiThread(() -> {
+                this.items.clear();
+                this.items.addAll(categories);
+                notifyDataSetChanged();
+            });
+        }).start();
+    }
+
 
     public class viewholder extends RecyclerView.ViewHolder {
         TextView titleTxt;

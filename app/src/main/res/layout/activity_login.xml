@@ -178,7 +178,7 @@
                     android:textColor="@color/blue_grey"/>
 
                 <TextView
-                    android:id="@+id/textView8"
+                    android:id="@+id/txvSignup"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Sign up"

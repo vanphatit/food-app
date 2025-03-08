@@ -10,7 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.phatlee.food_app.Domain.Foods;
+import com.phatlee.food_app.Entity.Foods;
 
 import java.io.File;
 import java.io.FileOutputStream;
