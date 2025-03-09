@@ -33,4 +33,8 @@ public interface FoodsDao {
     @Update
     void update(Foods food);
 
+    @Query("UPDATE foods SET star = :newRating WHERE id = :foodId")
+    void updateRating(int foodId, float newRating);
+
+
 }

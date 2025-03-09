@@ -15,6 +15,7 @@ import com.phatlee.food_app.Entity.Time;
 import com.phatlee.food_app.Entity.User;
 import com.phatlee.food_app.Entity.Wishlist;
 import com.phatlee.food_app.Entity.Cart;
+import com.phatlee.food_app.Entity.Review;
 
 @Database(entities = {
         Foods.class,
@@ -26,7 +27,8 @@ import com.phatlee.food_app.Entity.Cart;
         Wishlist.class,
         Cart.class,
         Order.class,
-        OrderItem.class
+        OrderItem.class,
+        Review.class
 }, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase instance;
@@ -40,6 +42,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract WishlistDao wishlistDao();
     public abstract CartDao cartDao();
     public abstract OrderDao orderDao();
+    public abstract ReviewDao reviewDao();
 
     public static synchronized AppDatabase getInstance(Context context) {
         if (instance == null) {

@@ -7,6 +7,8 @@ import androidx.room.Query;
 
 import com.phatlee.food_app.Entity.User;
 
+import java.util.List;
+
 @Dao
 public interface UserDao {
 
@@ -19,15 +21,18 @@ public interface UserDao {
     @Query("SELECT EXISTS(SELECT 1 FROM users WHERE email = :email)")
     boolean checkEmailExists(String email);
 
+    @Query("SELECT * FROM users")
+    List<User> getAllUsers();
+
     @Query("SELECT * FROM users WHERE id = :userId LIMIT 1")
     User getUserById(int userId);
 
     @Query("UPDATE users SET name = :name, phone = :phone, address = :address WHERE id = :userId")
     void updateUserProfile(int userId, String name, String phone, String address);
 
-    @Query("UPDATE users SET name = :name, email = :email, avatar = :avatar, phone = :phone, address = :address WHERE id = :userId")
-    void updateUser(int userId, String name, String email, String avatar, String phone, String address);
+    @Query("UPDATE users SET avatar = :avatar WHERE id = :userId")
+    void updateUserAvatar(int userId, String avatar);
 
-    @Query("DELETE FROM users WHERE id = :userId")
-    void deleteUser(int userId);
+    @Query("SELECT avatar FROM users WHERE id = :userId")
+    String getUserAvatar(int userId);
 }

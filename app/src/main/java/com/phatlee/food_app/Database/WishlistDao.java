@@ -18,9 +18,9 @@ public interface WishlistDao {
     @Query("DELETE FROM wishlist WHERE userId = :userId AND foodId = :foodId")
     void removeFromWishlist(int userId, int foodId);
 
-    @Query("SELECT foodId FROM wishlist WHERE userId = :userId")
-    List<Integer> getUserWishlist(int userId);
+    @Query("SELECT * FROM wishlist WHERE userId = :userId")
+    List<Wishlist> getUserWishlist(int userId);
 
-    @Query("SELECT * FROM foods WHERE id IN (SELECT foodId FROM wishlist WHERE userId = :userId)")
-    List<Foods> getFavoriteFoods(int userId);
+    @Query("SELECT * FROM wishlist WHERE userId = :userId AND foodId = :foodId LIMIT 1")
+    Wishlist getWishlistItem(int userId, int foodId);
 }

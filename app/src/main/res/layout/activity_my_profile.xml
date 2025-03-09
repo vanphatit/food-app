@@ -50,14 +50,17 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <ImageView
-                        android:id="@+id/imageView5"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/avatarImageView"
+                        android:layout_width="120dp"
                         android:layout_height="120dp"
                         android:layout_marginTop="52dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/profile"
+                        android:contentDescription="User Avatar"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:srcCompat="@drawable/lvphat" />
+                        app:shapeAppearanceOverlay="@style/CircularImageView"/>
 
                     <EditText
                         android:id="@+id/textView10"
@@ -69,9 +72,9 @@
                         android:textColor="#ffffff"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        app:layout_constraintEnd_toEndOf="@+id/imageView5"
-                        app:layout_constraintStart_toStartOf="@+id/imageView5"
-                        app:layout_constraintTop_toBottomOf="@+id/imageView5" />
+                        app:layout_constraintEnd_toEndOf="@+id/avatarImageView"
+                        app:layout_constraintStart_toStartOf="@+id/avatarImageView"
+                        app:layout_constraintTop_toBottomOf="@+id/avatarImageView" />
 
                     <TextView
                         android:id="@+id/textView13"
@@ -129,30 +132,29 @@
                                 android:orientation="vertical">
 
                                 <androidx.constraintlayout.widget.ConstraintLayout
-                                    android:layout_width="60dp"
-                                    android:layout_height="60dp"
-                                    android:layout_gravity="center_horizontal"
-                                    android:layout_margin="12dp"
-                                    android:background="@drawable/circle_background">
+                                    android:layout_width="80dp"
+                                    android:layout_height="80dp"
+                                    android:layout_gravity="center_horizontal">
 
                                     <ImageView
-                                        android:id="@+id/imageView14"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
+                                        android:id="@+id/imgWishlist"
+                                        android:layout_width="80dp"
+                                        android:layout_height="80dp"
+                                        android:layout_marginTop="10dp"
                                         app:layout_constraintBottom_toBottomOf="parent"
                                         app:layout_constraintEnd_toEndOf="parent"
                                         app:layout_constraintStart_toStartOf="parent"
                                         app:layout_constraintTop_toTopOf="parent"
-                                        app:srcCompat="@drawable/wallet" />
+                                        app:srcCompat="@drawable/favorite_white" />
                                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                                 <TextView
                                     android:id="@+id/textView22"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_margin="8dp"
+                                    android:layout_marginTop="12dp"
                                     android:layout_weight="1"
-                                    android:text="Payment"
+                                    android:text="Wishlist"
                                     android:textAlignment="center"
                                     android:textColor="#000000"
                                     android:textSize="13sp"
