@@ -76,10 +76,10 @@
                 app:layout_constraintEnd_toEndOf="parent" />
 
             <TextView
-                android:id="@+id/timeTxt"
+                android:id="@+id/stockQuantityTxt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="time"
+                android:text="stockQuantity"
                 app:layout_constraintBottom_toBottomOf="@+id/starTxt"
                 app:layout_constraintEnd_toStartOf="@+id/textView15"
                 app:layout_constraintStart_toEndOf="@+id/imageView6"
@@ -92,9 +92,9 @@
 
                 android:layout_marginStart="8dp"
                 app:tint="@color/red"
-                app:layout_constraintBottom_toBottomOf="@+id/timeTxt"
-                app:layout_constraintStart_toEndOf="@+id/timeTxt"
-                app:layout_constraintTop_toTopOf="@+id/timeTxt"
+                app:layout_constraintBottom_toBottomOf="@+id/stockQuantityTxt"
+                app:layout_constraintStart_toEndOf="@+id/stockQuantityTxt"
+                app:layout_constraintTop_toTopOf="@+id/stockQuantityTxt"
                 app:srcCompat="@drawable/time" />
 
             <TextView

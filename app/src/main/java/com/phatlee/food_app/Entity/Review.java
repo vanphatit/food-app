@@ -17,15 +17,18 @@ public class Review {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
-    public int userId;
+    public String userId;
     public int foodId;
     public float rating;
     public String comment;
 
-    public Review(int userId, int foodId, float rating, String comment) {
+    public Review(String userId, int foodId, float rating, String comment) {
         this.userId = userId;
         this.foodId = foodId;
         this.rating = rating;
         this.comment = comment;
+    }
+
+    public Review() {
     }
 }

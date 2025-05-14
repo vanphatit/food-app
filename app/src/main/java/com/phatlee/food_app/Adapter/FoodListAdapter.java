@@ -16,7 +16,7 @@ import com.phatlee.food_app.Activity.DetailActivity;
 import com.phatlee.food_app.Entity.Foods;
 import com.phatlee.food_app.R;
 
-import java.util.ArrayList;
+import java.text.DecimalFormat;
 import java.util.List;
 
 public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.viewholder> {
@@ -38,9 +38,10 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.viewho
     @Override
     public void onBindViewHolder(@NonNull FoodListAdapter.viewholder holder, int position) {
         holder.titleTxt.setText(items.get(position).getTitle());
-        holder.timeTxt.setText(items.get(position).getTimeValue() + " min");
+        holder.stockQuantityTxt.setText(String.valueOf(items.get(position).getStockQuantity()));
         holder.priceTxt.setText("$" + items.get(position).getPrice());
-        holder.rateTxt.setText("" + items.get(position).getStar());
+        DecimalFormat df = new DecimalFormat("#.#");
+        holder.rateTxt.setText("" + df.format(items.get(position).getStar()) );
 
         Foods foodItem = items.get(position);
 
@@ -71,7 +72,7 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.viewho
     }
 
     public class viewholder extends RecyclerView.ViewHolder {
-        TextView titleTxt, priceTxt, rateTxt, timeTxt;
+        TextView titleTxt, priceTxt, rateTxt, stockQuantityTxt;
         ImageView pic;
 
         public viewholder(@NonNull View itemView) {
@@ -80,7 +81,7 @@ public class FoodListAdapter extends RecyclerView.Adapter<FoodListAdapter.viewho
             titleTxt = itemView.findViewById(R.id.titleTxt);
             priceTxt = itemView.findViewById(R.id.priceTxt);
             rateTxt = itemView.findViewById(R.id.rateTxt);
-            timeTxt = itemView.findViewById(R.id.timeTxt);
+            stockQuantityTxt = itemView.findViewById(R.id.stockQuantityTxt);
             pic = itemView.findViewById(R.id.img);
 
         }

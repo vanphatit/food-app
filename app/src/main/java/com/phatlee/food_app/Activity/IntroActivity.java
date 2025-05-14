@@ -4,14 +4,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
 
-import com.phatlee.food_app.Database.AppDatabase;
-import com.phatlee.food_app.Utils.DataSeeder;
+import com.google.firebase.auth.FirebaseAuth;
 import com.phatlee.food_app.databinding.ActivityIntroBinding;
-
-import java.util.concurrent.Executors;
 
 // IntroActivity là màn hình chào mừng của ứng dụng
 // Nó sẽ kiểm tra xem người dùng đã đăng nhập hay chưa
@@ -19,7 +14,7 @@ import java.util.concurrent.Executors;
 // Nếu chưa -> Hiển thị nút Login & Signup
 public class IntroActivity extends BaseActivity {
     ActivityIntroBinding binding; // View Binding để truy cập các thành phần giao diện dễ dàng
-    SharedPreferences sharedPreferences;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,44 +24,22 @@ public class IntroActivity extends BaseActivity {
         binding = ActivityIntroBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE);
+        mAuth = FirebaseAuth.getInstance();
 
-        // Khởi tạo Room Database và seed dữ liệu
-        Executors.newSingleThreadExecutor().execute(() -> {
-            AppDatabase db = AppDatabase.getInstance(this);
+        setVariable();
+        getWindow().setStatusBarColor(Color.parseColor("#FFE4B5"));
 
-            // Kiểm tra nếu database trống, thì seed dữ liệu từ JSON
-            if (db.foodsDao().getAllFoods().isEmpty() &&
-                    db.categoryDao().getAllCategories().isEmpty() &&
-                    db.locationDao().getAllLocations().isEmpty() &&
-                    db.priceDao().getAllPrices().isEmpty() &&
-                    db.timeDao().getAllTimes().isEmpty()) {
-                sharedPreferences.edit().remove("user_id").apply();
-                DataSeeder.seedDatabase(db, this);
-            }
-
-            // Sau khi hoàn tất, chuyển sang MainActivity
-            runOnUiThread(() -> {
-                new Handler().postDelayed(() -> {
-                    setVariable();
-                    getWindow().setStatusBarColor(Color.parseColor("#FFE4B5"));
-
-                    if(sharedPreferences.getInt("user_id", 0) != 0){
-                        Intent intent = new Intent(IntroActivity.this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }
-                }, 1);
-            });
-        });
-
-
+        if(mAuth.getCurrentUser() != null) {
+            Intent intent = new Intent(IntroActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
     }
 
     // Hàm xử lý sự kiện khi nhấn vào nút Login & Signup
     private void setVariable() {
         binding.loginBtn.setOnClickListener(v -> {
-            if (sharedPreferences.getInt("user_id", 0) != 0) {
+            if (mAuth.getCurrentUser() != null) {
                 startActivity(new Intent(IntroActivity.this, MainActivity.class));
             } else {
                 startActivity(new Intent(IntroActivity.this, LoginActivity.class));

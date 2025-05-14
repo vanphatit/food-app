@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -14,6 +15,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FoodApp"
         tools:targetApi="31">
+        <activity
+            android:name=".Activity.AddEditAddressActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activity.ManageAddressActivity"
+            android:exported="false" />
         <activity
             android:name=".Activity.WishlistActivity"
             android:exported="false" />
@@ -40,6 +47,12 @@
             android:exported="false" />
         <activity
             android:name=".Activity.LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activity.RecentlyViewedActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activity.GeminiChatActivity"
             android:exported="false" />
         <activity
             android:name=".Activity.BaseActivity"

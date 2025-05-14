@@ -78,6 +78,17 @@
             </LinearLayout>
 
             <TextView
+                android:id="@+id/shippingAddressTxt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Địa chỉ giao hàng: [Chưa chọn]"
+                android:drawableEnd="@drawable/ic_chevron_right"
+                android:padding="12dp"
+                android:background="@drawable/bg_address_box"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
                 android:id="@+id/textView16"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

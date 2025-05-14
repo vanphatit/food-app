@@ -8,13 +8,17 @@ public class OrderItem {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
-    public int orderId; // ID của đơn hàng
+    public String orderId; // ID của đơn hàng
     public int foodId;  // ID của món ăn
     public int quantity; // Số lượng món ăn
 
-    public OrderItem(int orderId, int foodId, int quantity) {
+    public OrderItem(String orderId, int foodId, int quantity) {
         this.orderId = orderId;
         this.foodId = foodId;
         this.quantity = quantity;
+    }
+
+    // Constructor không tham số – cần cho Firestore deserialization
+    public OrderItem() {
     }
 }

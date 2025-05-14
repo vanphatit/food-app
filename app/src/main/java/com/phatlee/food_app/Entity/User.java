@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "users")
 public class User {
     @PrimaryKey(autoGenerate = true)
-    public int id;
+    public String id;
 
     @ColumnInfo(name = "name")
     public String name;
@@ -36,11 +36,15 @@ public class User {
         this.address = address;
     }
 
-    public int getId() {
+    public User(){
+
+    }
+
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 

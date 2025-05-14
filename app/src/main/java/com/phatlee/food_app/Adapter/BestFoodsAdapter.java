@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.phatlee.food_app.Activity.DetailActivity;
 import com.phatlee.food_app.Entity.Foods;
 import com.phatlee.food_app.R;
+
+import java.text.DecimalFormat;
 import java.util.List;
 
 public class BestFoodsAdapter extends RecyclerView.Adapter<BestFoodsAdapter.ViewHolder> {
@@ -35,8 +37,9 @@ public class BestFoodsAdapter extends RecyclerView.Adapter<BestFoodsAdapter.View
         Foods food = items.get(position);
         holder.titleTxt.setText(food.getTitle());
         holder.priceTxt.setText("$" + food.getPrice());
-        holder.timeTxt.setText(food.getTimeValue() + " min");
-        holder.starTxt.setText("" + food.getStar());
+        holder.stockQuantityTxt.setText( String.valueOf(food.getStockQuantity()));
+        DecimalFormat df = new DecimalFormat("#.#");
+        holder.starTxt.setText("" + df.format(food.getStar()));
 
         int imageResId = context.getResources().getIdentifier("food_" + food.getImagePath(), "drawable", context.getPackageName());
         holder.pic.setImageResource(imageResId != 0 ? imageResId : R.drawable.logo);
@@ -54,7 +57,7 @@ public class BestFoodsAdapter extends RecyclerView.Adapter<BestFoodsAdapter.View
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView titleTxt, priceTxt, starTxt, timeTxt;
+        TextView titleTxt, priceTxt, starTxt, stockQuantityTxt;
         ImageView pic;
 
         public ViewHolder(@NonNull View itemView) {
@@ -62,7 +65,7 @@ public class BestFoodsAdapter extends RecyclerView.Adapter<BestFoodsAdapter.View
             titleTxt = itemView.findViewById(R.id.titleTxt);
             priceTxt = itemView.findViewById(R.id.priceTxt);
             starTxt = itemView.findViewById(R.id.starTxt);
-            timeTxt = itemView.findViewById(R.id.timeTxt);
+            stockQuantityTxt = itemView.findViewById(R.id.stockQuantityTxt);
             pic = itemView.findViewById(R.id.pic);
         }
     }

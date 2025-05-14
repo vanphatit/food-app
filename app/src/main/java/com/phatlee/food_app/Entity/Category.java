@@ -23,6 +23,10 @@ public class Category implements Serializable {
         this.name = name;
     }
 
+    // Constructor không tham số – cần cho Firestore deserialization
+    public Category() {
+    }
+
     public int getId() { return id; }
     public String getImagePath() { return imagePath; }
     public String getName() { return name; }

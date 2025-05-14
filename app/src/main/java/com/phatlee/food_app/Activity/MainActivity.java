@@ -3,54 +3,74 @@ package com.phatlee.food_app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
-
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 import com.phatlee.food_app.Adapter.BestFoodsAdapter;
-import com.phatlee.food_app.Adapter.CartAdapter;
 import com.phatlee.food_app.Adapter.CategoryAdapter;
-import com.phatlee.food_app.Database.AppDatabase;
+import com.phatlee.food_app.Database.FoodsDaoFirestore;
+import com.phatlee.food_app.Database.UserDaoFirestore;
 import com.phatlee.food_app.Entity.Category;
 import com.phatlee.food_app.Entity.Foods;
-import com.phatlee.food_app.Entity.Location;
-import com.phatlee.food_app.Entity.Price;
-import com.phatlee.food_app.Entity.Time;
+import com.phatlee.food_app.Entity.User;
 import com.phatlee.food_app.R;
+import com.phatlee.food_app.Repository.CategoryRepository;
+import com.phatlee.food_app.Repository.FoodsRepository;
+import com.phatlee.food_app.Repository.UserRepository;
 import com.phatlee.food_app.databinding.ActivityMainBinding;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends BaseActivity {
     private ActivityMainBinding binding;
-    SharedPreferences sharedPreferences;
+    private FoodsRepository foodsRepository;
+    private CategoryRepository categoryRepository;
+    private UserRepository userRepository;
+    private FirebaseAuth mAuth;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("MainActivity", "=============== 👌✌️onCreate called");
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE);
+        mAuth = FirebaseAuth.getInstance();
+        userRepository = new UserRepository();
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                // Gọi phương thức đồng bộ để lấy user theo email
+                User user = userRepository.getUserByEmail(mAuth.getCurrentUser().getEmail());
+                if (user != null) {
+                    currentUser = user;
+                } else {
+                    currentUser = null;
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, "User not found!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    });
+                }
+            } catch (Exception e) {
+                currentUser = null;
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "Error loading user", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+            }
+        });
 
-//        initLocation();
-//        initTime();
-//        initPrice();
+        // Khởi tạo các repository Firestore
+        foodsRepository = new FoodsRepository();
+        categoryRepository = new CategoryRepository();
+        userRepository = new UserRepository();
+
         initBestFood();
         initCategory();
         setVariable();
@@ -59,14 +79,29 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        Executors.newSingleThreadExecutor().execute(() -> {
-            AppDatabase db = AppDatabase.getInstance(this);
-            int user_id = sharedPreferences.getInt("user_id", -1);
-            String user_name = db.userDao().getUserById(user_id).getName();
 
-            runOnUiThread(() -> {
-                binding.txvProfile.setText(user_name);
-            });
+        // Reload best foods từ Firestore
+        foodsRepository.getAllFoods(new FoodsDaoFirestore.OnFoodsLoadedListener() {
+            @Override
+            public void onFoodsLoaded(List<Foods> foods) {
+                List<Foods> bestFoods = new ArrayList<>();
+                for (Foods food : foods) {
+                    if (food.isBestFood()) {
+                        bestFoods.add(food);
+                    }
+                }
+                runOnUiThread(() -> {
+                    binding.bestFoodView.setLayoutManager(
+                            new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
+                    BestFoodsAdapter adapter = new BestFoodsAdapter(bestFoods);
+                    binding.bestFoodView.setAdapter(adapter);
+                });
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Error loading best foods", Toast.LENGTH_SHORT).show());
+            }
         });
     }
 
@@ -79,19 +114,14 @@ public class MainActivity extends BaseActivity {
     }
 
     private void setVariable() {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            AppDatabase db = AppDatabase.getInstance(this);
-            int user_id = sharedPreferences.getInt("user_id", -1);
-            String user_name = db.userDao().getUserById(user_id).getName();
 
-            runOnUiThread(() -> {
-                binding.txvProfile.setText(user_name);
-            });
+        binding.fabChatGemini.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, GeminiChatActivity.class));
         });
 
-        binding.logoutBtn.setOnClickListener(v -> {
 
-            sharedPreferences.edit().remove("user_id").apply();
+        binding.logoutBtn.setOnClickListener(v -> {
+            mAuth.signOut();
             startActivity(new Intent(MainActivity.this, LoginActivity.class));
             finish();
         });
@@ -112,97 +142,72 @@ public class MainActivity extends BaseActivity {
             startActivity(intent);
         });
 
-        binding.cartBtn.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, CartActivity.class)));
-
-        binding.txvProfile.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, MyProfileActivity.class)));
-
-        binding.orderBtn.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, OrderActivity.class)));
+        binding.cartBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CartActivity.class);
+            intent.putExtra("userid", currentUser.getId());
+            startActivity(intent);
+        });
+        binding.txvProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, MyProfileActivity.class);
+            intent.putExtra("userid", currentUser.getId());
+            startActivity(intent);
+        });
+        binding.orderBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, OrderActivity.class);
+            intent.putExtra("userid", currentUser.getId());
+            startActivity(intent);
+        });
     }
 
     private void initBestFood() {
         binding.progressBarBestFood.setVisibility(View.VISIBLE);
-
-        new Thread(() -> {
-            AppDatabase db = AppDatabase.getInstance(this);
-            List<Foods> bestFoodList = db.foodsDao().getBestFoods();  // Lấy từ Room
-
-            runOnUiThread(() -> {
-                if (!bestFoodList.isEmpty()) {
-                    binding.bestFoodView.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
-                    BestFoodsAdapter adapter = new BestFoodsAdapter(bestFoodList);
-                    binding.bestFoodView.setAdapter(adapter);
+        // Lấy toàn bộ Foods từ Firestore và lọc ra bestFood
+        foodsRepository.getAllFoods(new FoodsDaoFirestore.OnFoodsLoadedListener() {
+            @Override
+            public void onFoodsLoaded(List<Foods> foods) {
+                List<Foods> bestFoods = new ArrayList<>();
+                for (Foods food : foods) {
+                    if (food.isBestFood()) {
+                        bestFoods.add(food);
+                    }
                 }
-                binding.progressBarBestFood.setVisibility(View.GONE);
-            });
-        }).start();
+                runOnUiThread(() -> {
+                    binding.bestFoodView.setLayoutManager(
+                            new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
+                    BestFoodsAdapter adapter = new BestFoodsAdapter(bestFoods);
+                    binding.bestFoodView.setAdapter(adapter);
+                    binding.progressBarBestFood.setVisibility(View.GONE);
+                });
+            }
+            @Override
+            public void onFailure(Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "Error loading best foods", Toast.LENGTH_SHORT).show();
+                    binding.progressBarBestFood.setVisibility(View.GONE);
+                });
+            }
+        });
     }
 
     private void initCategory() {
         binding.progressBarCategory.setVisibility(View.VISIBLE);
-
-        new Thread(() -> {
-            AppDatabase db = AppDatabase.getInstance(this);
-            List<Category> list = db.categoryDao().getAllCategories();
-
-            runOnUiThread(() -> {
-                if (!list.isEmpty()) {
+        categoryRepository.getAllCategories(new com.phatlee.food_app.Database.CategoryDaoFirestore.OnCategoriesLoadedListener() {
+            @Override
+            public void onCategoriesLoaded(List<Category> categories) {
+                runOnUiThread(() -> {
                     binding.categoryView.setLayoutManager(new GridLayoutManager(MainActivity.this, 4));
-                    CategoryAdapter adapter = new CategoryAdapter(list);
+                    CategoryAdapter adapter = new CategoryAdapter(categories);
                     binding.categoryView.setAdapter(adapter);
-                    adapter.loadCategories(this);  // Cập nhật dữ liệu từ Room
-                }
-                binding.progressBarCategory.setVisibility(View.GONE);
-            });
-        }).start();
+                    binding.progressBarCategory.setVisibility(View.GONE);
+                });
+            }
+            @Override
+            public void onFailure(Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "Error loading categories", Toast.LENGTH_SHORT).show();
+                    binding.progressBarCategory.setVisibility(View.GONE);
+                });
+            }
+        });
     }
-
-
-//    private void initLocation() {
-//        new Thread(() -> {
-//            AppDatabase db = AppDatabase.getInstance(this);
-//            List<Location> list = db.locationDao().getAllLocations();
-//
-//            runOnUiThread(() -> {
-//                if (!list.isEmpty()) {
-//                    ArrayAdapter<Location> adapter
-//                            = new ArrayAdapter<>(MainActivity.this, R.layout.sp_item, list);
-//                    for(Location location : list) {
-//                        Log.d("MainActivity", "=============== 👌✌️initLocation: " + location);
-//                    }
-//                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//                    binding.locationSp.setAdapter(adapter);
-//                }
-//            });
-//        }).start();
-//    }
-//
-//    private void initTime() {
-//        new Thread(() -> {
-//            AppDatabase db = AppDatabase.getInstance(this);
-//            List<Time> list = db.timeDao().getAllTimes();
-//
-//            runOnUiThread(() -> {
-//                if (!list.isEmpty()) {
-//                    ArrayAdapter<Time> adapter = new ArrayAdapter<>(MainActivity.this, R.layout.sp_item, list);
-//                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//                    binding.timeSp.setAdapter(adapter);
-//                }
-//            });
-//        }).start();
-//    }
-//
-//    private void initPrice() {
-//        new Thread(() -> {
-//            AppDatabase db = AppDatabase.getInstance(this);
-//            List<Price> list = db.priceDao().getAllPrices();
-//
-//            runOnUiThread(() -> {
-//                if (!list.isEmpty()) {
-//                    ArrayAdapter<Price> adapter = new ArrayAdapter<>(MainActivity.this, R.layout.sp_item, list);
-//                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//                    binding.priceSp.setAdapter(adapter);
-//                }
-//            });
-//        }).start();
-//    }
 }

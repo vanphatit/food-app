@@ -10,15 +10,25 @@ import androidx.room.PrimaryKey;
                 @ForeignKey(entity = Foods.class, parentColumns = "id", childColumns = "foodId", onDelete = ForeignKey.CASCADE)
         })
 public class Cart {
-    @PrimaryKey(autoGenerate = true)
-    public int cartId;
-    public int userId;
+    public String cartId;
+    public String userId;
     public int foodId;
     public int quantity;
 
-    public Cart(int userId, int foodId, int quantity) {
+    public Cart(String userId, int foodId, int quantity) {
         this.userId = userId;
         this.foodId = foodId;
         this.quantity = quantity;
+    }
+
+    // Constructor không tham số – cần cho Firestore deserialization
+    public Cart() {
+    }
+
+    public String getCartId() {
+        return cartId;
+    }
+    public void setCartId(String cartId) {
+        this.cartId = cartId;
     }
 }

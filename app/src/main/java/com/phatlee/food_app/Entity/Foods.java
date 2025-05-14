@@ -35,6 +35,8 @@ public class Foods implements Serializable {
     @SerializedName("Title")  // Match JSON key "Name" với biến "name"
     private String title;
 
+    private int stockQuantity;
+
     public Foods(int id, int categoryId, String description, boolean bestFood, String imagePath, int locationId,
                  double price, int priceId, double star, int timeId, int timeValue, String title) {
         this.id = id;
@@ -49,6 +51,11 @@ public class Foods implements Serializable {
         this.timeId = timeId;
         this.timeValue = timeValue;
         this.title = title;
+        this.stockQuantity = 50;
+    }
+
+    // Constructor không tham số – cần cho Firestore deserialization
+    public Foods() {
     }
 
     public int getId() { return id; }
@@ -77,4 +84,12 @@ public class Foods implements Serializable {
     public void setTimeId(int timeId) { this.timeId = timeId; }
     public void setTimeValue(int timeValue) { this.timeValue = timeValue; }
     public void setTitle(String title) { this.title = title; }
+
+    public int getStockQuantity() {
+        return stockQuantity;
+    }
+
+    public void setStockQuantity(int stockQuantity) {
+        this.stockQuantity = stockQuantity;
+    }
 }

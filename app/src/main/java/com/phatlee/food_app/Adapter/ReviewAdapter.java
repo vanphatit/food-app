@@ -9,38 +9,43 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.phatlee.food_app.Database.AppDatabase;
 import com.phatlee.food_app.Entity.Review;
 import com.phatlee.food_app.Entity.User;
 import com.phatlee.food_app.R;
+import com.phatlee.food_app.Repository.UserRepository;
 import com.phatlee.food_app.databinding.ViewholderUserReviewBinding;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder> {
     private List<Review> reviewList;
     private Context context;
-    private HashMap<Integer, User> userMap = new HashMap<>(); // Lưu userId -> User Object (Name + Avatar)
+    private HashMap<String, User> userMap = new HashMap<>(); // lưu userId -> User
+    private UserRepository userRepository;
 
     public ReviewAdapter(List<Review> reviewList, Context context) {
         this.reviewList = reviewList;
         this.context = context;
+        userRepository = new UserRepository();
         loadUserData();
     }
 
-    // ✅ Load dữ liệu user từ database (Tên + Avatar)
     private void loadUserData() {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            AppDatabase db = AppDatabase.getInstance(context);
-            List<User> userList = db.userDao().getAllUsers(); // Lấy tất cả user
-
-            for (User user : userList) {
-                userMap.put(user.id, user); // Lưu user vào HashMap
+        userRepository.getAllUsers(new com.phatlee.food_app.Database.UserDaoFirestore.OnUsersLoadedListener() {
+            @Override
+            public void onUsersLoaded(List<User> users) {
+                userMap.clear();
+                for (User user : users) {
+                    userMap.put(user.getId(), user);
+                }
+                ((Activity) context).runOnUiThread(() -> notifyDataSetChanged());
             }
 
-            ((Activity) context).runOnUiThread(this::notifyDataSetChanged);
+            @Override
+            public void onFailure(Exception e) {
+                ((Activity) context).runOnUiThread(() -> notifyDataSetChanged());
+            }
         });
     }
 
@@ -55,14 +60,11 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Review review = reviewList.get(position);
-        User user = userMap.get(review.userId); // Lấy User từ HashMap
-
+        User user = userMap.get(review.userId);
         if (user != null) {
-            holder.binding.userName.setText(user.name);
-
-            // ✅ Load Avatar từ file lưu trong database
-            if (user.avatar != null && !user.avatar.isEmpty()) {
-                Glide.with(context).load(user.avatar).circleCrop().into(holder.binding.userAvatar);
+            holder.binding.userName.setText(user.getName());
+            if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                Glide.with(context).load(user.getAvatar()).circleCrop().into(holder.binding.userAvatar);
             } else {
                 holder.binding.userAvatar.setImageResource(R.drawable.profile);
             }
@@ -70,7 +72,6 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
             holder.binding.userName.setText("Unknown User");
             holder.binding.userAvatar.setImageResource(R.drawable.profile);
         }
-
         holder.binding.userComment.setText(review.comment);
         holder.binding.userRatingBar.setRating(review.rating);
     }

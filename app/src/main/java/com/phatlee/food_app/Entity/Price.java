@@ -20,6 +20,10 @@ public class Price implements Serializable {
         this.value = value;
     }
 
+    // Constructor không tham số – cần cho Firestore deserialization
+    public Price() {
+    }
+
     public int getId() { return id; }
     public String getValue() { return value; }
 }

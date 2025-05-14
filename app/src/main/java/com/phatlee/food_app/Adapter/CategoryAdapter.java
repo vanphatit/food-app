@@ -3,7 +3,6 @@ package com.phatlee.food_app.Adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -13,17 +12,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.phatlee.food_app.Activity.ListFoodsActivity;
-import com.phatlee.food_app.Activity.MainActivity;
-import com.phatlee.food_app.Database.AppDatabase;
 import com.phatlee.food_app.Entity.Category;
 import com.phatlee.food_app.R;
+import com.phatlee.food_app.Repository.CategoryRepository;
+import com.phatlee.food_app.databinding.ViewholderCategoryBinding;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.viewholder> {
-    List<Category> items;
-    Context context;
+public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHolder> {
+    private List<Category> items;
+    private Context context;
+    private CategoryRepository categoryRepository;
 
     public CategoryAdapter(List<Category> items) {
         this.items = items;
@@ -31,61 +30,40 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.viewho
 
     @NonNull
     @Override
-    public CategoryAdapter.viewholder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         context = parent.getContext();
-        View inflate = LayoutInflater.from(parent.getContext()).inflate(R.layout.viewholder_category, parent, false);
-        return new viewholder(inflate);
+        categoryRepository = new CategoryRepository();
+        ViewholderCategoryBinding binding = ViewholderCategoryBinding.inflate(
+                LayoutInflater.from(context), parent, false);
+        return new ViewHolder(binding);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CategoryAdapter.viewholder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Category category = items.get(position);
+        holder.titleTxt.setText(category.getName());
 
-        holder.titleTxt.setText(items.get(position).getName());
-
+        // Giữ nguyên logic thiết lập background theo vị trí
         switch (position) {
-            case 0: {
-                holder.pic.setBackgroundResource(R.drawable.cat_0_background);
-                break;
-            }
-            case 1: {
-                holder.pic.setBackgroundResource(R.drawable.cat_1_background);
-                break;
-            }
-            case 2: {
-                holder.pic.setBackgroundResource(R.drawable.cat_2_background);
-                break;
-            }
-            case 3: {
-                holder.pic.setBackgroundResource(R.drawable.cat_3_background);
-                break;
-            }
-            case 4: {
-                holder.pic.setBackgroundResource(R.drawable.cat_4_background);
-                break;
-            }
-            case 5: {
-                holder.pic.setBackgroundResource(R.drawable.cat_5_background);
-                break;
-            }
-            case 6: {
-                holder.pic.setBackgroundResource(R.drawable.cat_6_background);
-                break;
-            }
-            case 7: {
-                holder.pic.setBackgroundResource(R.drawable.cat_7_background);
-                break;
-            }
+            case 0: holder.pic.setBackgroundResource(R.drawable.cat_0_background); break;
+            case 1: holder.pic.setBackgroundResource(R.drawable.cat_1_background); break;
+            case 2: holder.pic.setBackgroundResource(R.drawable.cat_2_background); break;
+            case 3: holder.pic.setBackgroundResource(R.drawable.cat_3_background); break;
+            case 4: holder.pic.setBackgroundResource(R.drawable.cat_4_background); break;
+            case 5: holder.pic.setBackgroundResource(R.drawable.cat_5_background); break;
+            case 6: holder.pic.setBackgroundResource(R.drawable.cat_6_background); break;
+            case 7: holder.pic.setBackgroundResource(R.drawable.cat_7_background); break;
         }
-        int drawableResourceId = context.getResources().getIdentifier(items.get(position).getImagePath(),
-                "drawable", holder.itemView.getContext().getPackageName());
+        int drawableResourceId = context.getResources().getIdentifier(category.getImagePath(),
+                "drawable", context.getPackageName());
         Glide.with(context)
                 .load(drawableResourceId)
                 .into(holder.pic);
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, ListFoodsActivity.class);
-            intent.putExtra("CategoryId", items.get(position).getId());
-            intent.putExtra("CategoryName", items.get(position).getName());
+            intent.putExtra("CategoryId", category.getId());
+            intent.putExtra("CategoryName", category.getName());
             context.startActivity(intent);
         });
     }
@@ -95,28 +73,36 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.viewho
         return items.size();
     }
 
+    // Phương thức loadCategories dùng CategoryRepository để cập nhật danh sách từ Firestore
     public void loadCategories(Context context) {
-        new Thread(() -> {
-            AppDatabase db = AppDatabase.getInstance(context);
-            List<Category> categories = db.categoryDao().getAllCategories();
-
-            ((MainActivity) context).runOnUiThread(() -> {
-                this.items.clear();
-                this.items.addAll(categories);
-                notifyDataSetChanged();
-            });
-        }).start();
+        categoryRepository.getAllCategories(new com.phatlee.food_app.Database.CategoryDaoFirestore.OnCategoriesLoadedListener() {
+            @Override
+            public void onCategoriesLoaded(List<Category> categories) {
+                items.clear();
+                items.addAll(categories);
+                // Giả sử context là MainActivity, bạn có thể gọi runOnUiThread
+                if (context instanceof android.app.Activity) {
+                    ((android.app.Activity) context).runOnUiThread(() -> notifyDataSetChanged());
+                }
+            }
+            @Override
+            public void onFailure(Exception e) {
+                if (context instanceof android.app.Activity) {
+                    ((android.app.Activity) context).runOnUiThread(() -> {
+                        // Hiển thị thông báo lỗi nếu cần
+                    });
+                }
+            }
+        });
     }
 
-
-    public class viewholder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView titleTxt;
         ImageView pic;
-
-        public viewholder(@NonNull View itemView) {
-            super(itemView);
-            titleTxt = itemView.findViewById(R.id.catNameTxt);
-            pic = itemView.findViewById(R.id.imgCat);
+        public ViewHolder(@NonNull ViewholderCategoryBinding binding) {
+            super(binding.getRoot());
+            titleTxt = binding.catNameTxt;
+            pic = binding.imgCat;
         }
     }
 }

@@ -6,33 +6,36 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "orders")
 public class Order {
     @PrimaryKey(autoGenerate = true)
-    public int id;
+    public String orderId;
 
-    public int userId; // ID người dùng
+    public String userId; // ID người dùng
     public String orderDate; // Ngày đặt hàng
     public double totalPrice; // Tổng giá đơn hàng
     public String status; // Trạng thái đơn hàng (Pending, Completed, Canceled)
 
-    public Order(int userId, String orderDate, double totalPrice, String status) {
+    public Order(String userId, String orderDate, double totalPrice, String status) {
         this.userId = userId;
         this.orderDate = orderDate;
         this.totalPrice = totalPrice;
         this.status = status;
     }
 
-    public int getId() {
-        return id;
+    // Constructor không tham số – cần cho Firestore deserialization
+    public Order() {
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public String getOrderId() {
+        return orderId;
+    }
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 
-    public int getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

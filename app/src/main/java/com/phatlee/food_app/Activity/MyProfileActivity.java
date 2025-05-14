@@ -14,8 +14,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
-import com.phatlee.food_app.Database.AppDatabase;
+import com.google.firebase.auth.FirebaseAuth;
+import com.phatlee.food_app.Database.UserDaoFirestore;
 import com.phatlee.food_app.Entity.User;
+import com.phatlee.food_app.Repository.UserRepository;
 import com.phatlee.food_app.databinding.ActivityMyProfileBinding;
 
 import java.io.File;
@@ -25,9 +27,8 @@ import java.util.concurrent.Executors;
 
 public class MyProfileActivity extends AppCompatActivity {
     private ActivityMyProfileBinding binding;
-    private AppDatabase db;
-    private int userId;
-    private SharedPreferences sharedPreferences;
+    private String userId;
+    private UserRepository userRepository;
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -45,17 +46,9 @@ public class MyProfileActivity extends AppCompatActivity {
         binding = ActivityMyProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        db = AppDatabase.getInstance(this);
-        sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE);
-        userId = sharedPreferences.getInt("user_id", -1);
+        userRepository = new UserRepository();
 
-        if (userId == -1) {
-            Toast.makeText(this, "User not found!", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
-        loadUserProfile();
+        userId = getIntent().getStringExtra("userid");
 
         binding.backHomeBtn.setOnClickListener(v -> finish());
 
@@ -64,9 +57,16 @@ public class MyProfileActivity extends AppCompatActivity {
         binding.avatarImageView.setOnClickListener(v -> openImagePicker());
 
         binding.imgWishlist.setOnClickListener(v -> {
-            Intent intent = new Intent(this, WishlistActivity.class);
+            Intent intent = new Intent(MyProfileActivity.this, WishlistActivity.class);
+            intent.putExtra("userid", userId);
             startActivity(intent);
         });
+
+        binding.imgRecentList.setOnClickListener(v -> {
+            startActivity(new Intent(MyProfileActivity.this, RecentlyViewedActivity.class));
+        });
+
+        loadUserProfile();
     }
 
     private void openImagePicker() {
@@ -79,42 +79,52 @@ public class MyProfileActivity extends AppCompatActivity {
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
                 File file = new File(getFilesDir(), "avatar_user_" + userId + ".jpg");
-
                 try (FileOutputStream out = new FileOutputStream(file)) {
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
                 }
-
-                String avatarPath = file.getAbsolutePath();
-                db.userDao().updateUserAvatar(userId, avatarPath);
-
-                runOnUiThread(() -> {
-                    Glide.with(this).load(avatarPath).circleCrop().into(binding.avatarImageView);
-                    Toast.makeText(this, "Avatar updated!", Toast.LENGTH_SHORT).show();
+                String avatarPath = file.getCanonicalPath();
+                userRepository.updateUserAvatar(userId, avatarPath, new UserDaoFirestore.OnOperationCompleteListener() {
+                    @Override
+                    public void onSuccess() {
+                        runOnUiThread(() -> {
+                            Glide.with(MyProfileActivity.this).load(avatarPath).circleCrop().into(binding.avatarImageView);
+                            Toast.makeText(MyProfileActivity.this, "Avatar updated!", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                    @Override
+                    public void onFailure(Exception e) {
+                        runOnUiThread(() -> Toast.makeText(MyProfileActivity.this, "Failed to update avatar!", Toast.LENGTH_SHORT).show());
+                    }
                 });
             } catch (IOException e) {
                 e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(this, "Failed to save avatar!", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(MyProfileActivity.this, "Failed to save avatar!", Toast.LENGTH_SHORT).show());
             }
         });
     }
 
     private void loadUserProfile() {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            User user = db.userDao().getUserById(userId);
-            runOnUiThread(() -> {
-                if (user != null) {
-                    binding.textView10.setText(user.name);
-                    binding.textView13.setText(user.email);
-                    binding.textView26.setText(user.phone);
-                    binding.textView27.setText(user.address);
-
-                    if (user.avatar != null && !user.avatar.isEmpty()) {
-                        Glide.with(this).load(user.avatar).circleCrop().into(binding.avatarImageView);
+        userRepository.getUserById(userId, new UserDaoFirestore.OnUserLoadedListener() {
+            @Override
+            public void onUserLoaded(User user) {
+                runOnUiThread(() -> {
+                    if (user != null) {
+                        binding.textView10.setText(user.getName());
+                        binding.textView13.setText(user.getEmail());
+                        binding.textView26.setText(user.getPhone());
+                        binding.textView27.setText(user.getAddress());
+                        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                            Glide.with(MyProfileActivity.this).load(user.getAvatar()).circleCrop().into(binding.avatarImageView);
+                        }
+                    } else {
+                        Toast.makeText(MyProfileActivity.this, "User data not found!", Toast.LENGTH_SHORT).show();
                     }
-                } else {
-                    Toast.makeText(this, "User data not found!", Toast.LENGTH_SHORT).show();
-                }
-            });
+                });
+            }
+            @Override
+            public void onFailure(Exception e) {
+                runOnUiThread(() -> Toast.makeText(MyProfileActivity.this, "Error loading user profile", Toast.LENGTH_SHORT).show());
+            }
         });
     }
 
@@ -124,9 +134,16 @@ public class MyProfileActivity extends AppCompatActivity {
             String newPhone = binding.textView26.getText().toString();
             String newAddress = binding.textView27.getText().toString();
 
-            db.userDao().updateUserProfile(userId, newName, newPhone, newAddress);
-
-            runOnUiThread(() -> Toast.makeText(this, "Profile updated successfully!", Toast.LENGTH_SHORT).show());
+            userRepository.updateUserProfile(userId, newName, newPhone, newAddress, new UserDaoFirestore.OnOperationCompleteListener() {
+                @Override
+                public void onSuccess() {
+                    runOnUiThread(() -> Toast.makeText(MyProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show());
+                }
+                @Override
+                public void onFailure(Exception e) {
+                    runOnUiThread(() -> Toast.makeText(MyProfileActivity.this, "Failed to update profile", Toast.LENGTH_SHORT).show());
+                }
+            });
         });
     }
 }

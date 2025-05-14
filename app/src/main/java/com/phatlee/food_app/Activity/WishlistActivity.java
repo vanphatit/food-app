@@ -1,20 +1,24 @@
 package com.phatlee.food_app.Activity;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.phatlee.food_app.Adapter.WishlistAdapter;
-import com.phatlee.food_app.Database.AppDatabase;
+import com.phatlee.food_app.Database.UserDaoFirestore;
+import com.phatlee.food_app.Database.WishlistDaoFirestore;
 import com.phatlee.food_app.Entity.Foods;
+import com.phatlee.food_app.Entity.User;
 import com.phatlee.food_app.Entity.Wishlist;
+import com.phatlee.food_app.Repository.UserRepository;
 import com.phatlee.food_app.databinding.ActivityWishlistBinding;
+import com.phatlee.food_app.Repository.FoodsRepository;
+import com.phatlee.food_app.Repository.WishlistRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +26,12 @@ import java.util.concurrent.Executors;
 
 public class WishlistActivity extends AppCompatActivity {
     private ActivityWishlistBinding binding;
-    private AppDatabase db;
-    private int userId;
+    private String userId;
     private List<Foods> wishlistFoods;
     private WishlistAdapter adapter;
+    private WishlistRepository wishlistRepository;
+    private FoodsRepository foodsRepository;
+    private UserRepository userRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,15 +39,12 @@ public class WishlistActivity extends AppCompatActivity {
         binding = ActivityWishlistBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        db = AppDatabase.getInstance(this);
-        SharedPreferences sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE);
-        userId = sharedPreferences.getInt("user_id", -1);
+        userRepository = new UserRepository();
 
-        if (userId == -1) {
-            Toast.makeText(this, "User not found!", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        userId = getIntent().getStringExtra("userid");
+
+        wishlistRepository = new WishlistRepository();
+        foodsRepository = new FoodsRepository();
 
         setupRecyclerView();
         loadWishlist();
@@ -61,25 +64,34 @@ public class WishlistActivity extends AppCompatActivity {
 
     private void loadWishlist() {
         Executors.newSingleThreadExecutor().execute(() -> {
-            List<Wishlist> wishlist = db.wishlistDao().getUserWishlist(userId);
-            wishlistFoods = new ArrayList<>();
-
-            for (Wishlist item : wishlist) {
-                Foods food = db.foodsDao().getFoodById(item.getFoodId());
-                if (food != null) {
-                    wishlistFoods.add(food);
+            try {
+                // Sử dụng hàm đồng bộ getUserWishlistSync() từ WishlistRepository để lấy danh sách wishlist của user
+                List<Wishlist> wishlists = wishlistRepository.getUserWishlist(userId);
+                wishlistFoods = new ArrayList<>();
+                if (wishlists != null && !wishlists.isEmpty()) {
+                    // Duyệt qua từng wishlist item để lấy thông tin Food bằng hàm đồng bộ getFoodByIdSync()
+                    for (Wishlist item : wishlists) {
+                        Foods food = foodsRepository.getFoodByIdSync(item.getFoodId());
+                        if (food != null) {
+                            wishlistFoods.add(food);
+                        }
+                    }
                 }
+                // Cập nhật giao diện trên UI thread
+                runOnUiThread(() -> {
+                    if (wishlistFoods.isEmpty()) {
+                        binding.emptyTxt.setVisibility(View.VISIBLE);
+                    } else {
+                        binding.emptyTxt.setVisibility(View.GONE);
+                        adapter = new WishlistAdapter(wishlistFoods, WishlistActivity.this);
+                        binding.cardView.setAdapter(adapter);
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() ->
+                        Toast.makeText(WishlistActivity.this, "Error loading wishlist", Toast.LENGTH_SHORT).show()
+                );
             }
-
-            runOnUiThread(() -> {
-                if (wishlistFoods.isEmpty()) {
-                    binding.emptyTxt.setVisibility(View.VISIBLE);
-                } else {
-                    binding.emptyTxt.setVisibility(View.GONE);
-                    adapter = new WishlistAdapter(wishlistFoods, this);
-                    binding.cardView.setAdapter(adapter);
-                }
-            });
         });
     }
 }

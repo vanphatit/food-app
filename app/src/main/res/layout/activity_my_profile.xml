@@ -179,7 +179,7 @@
                                     android:background="@drawable/circle_background">
 
                                     <ImageView
-                                        android:id="@+id/imageView15"
+                                        android:id="@+id/imgRecentList"
                                         android:layout_width="32dp"
                                         android:layout_height="26dp"
                                         app:layout_constraintBottom_toBottomOf="parent"
@@ -195,7 +195,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_margin="8dp"
                                     android:layout_weight="1"
-                                    android:text="Settings"
+                                    android:text="Recent view"
                                     android:textAlignment="center"
                                     android:textColor="#000000"
                                     android:textSize="13sp"

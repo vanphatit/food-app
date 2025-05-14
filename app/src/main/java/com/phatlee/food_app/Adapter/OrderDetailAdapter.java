@@ -1,30 +1,28 @@
 package com.phatlee.food_app.Adapter;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.phatlee.food_app.Database.AppDatabase;
+import com.phatlee.food_app.Database.FoodsDaoFirestore;
 import com.phatlee.food_app.Entity.Foods;
 import com.phatlee.food_app.Entity.OrderItem;
 import com.phatlee.food_app.R;
+import com.phatlee.food_app.Repository.FoodsRepository;
 import com.phatlee.food_app.databinding.ViewholderOrderItemBinding;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 public class OrderDetailAdapter extends RecyclerView.Adapter<OrderDetailAdapter.ViewHolder> {
     private List<OrderItem> orderItemList;
     private Context context;
+    private FoodsRepository foodsRepository;
 
     public OrderDetailAdapter(List<OrderItem> orderItemList, Context context) {
         this.orderItemList = orderItemList;
         this.context = context;
+        this.foodsRepository = new FoodsRepository();
     }
 
     @NonNull
@@ -38,30 +36,25 @@ public class OrderDetailAdapter extends RecyclerView.Adapter<OrderDetailAdapter.
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         OrderItem orderItem = orderItemList.get(position);
-
-        Executors.newSingleThreadExecutor().execute(() -> {
-            AppDatabase db = AppDatabase.getInstance(context);
-            Foods food = db.foodsDao().getFoodById(orderItem.foodId);
-
-            ((Activity) context).runOnUiThread(() -> {
+        // Sử dụng FoodsRepository để tải thông tin Food theo orderItem.foodId
+        foodsRepository.getFoodById(orderItem.foodId, new FoodsDaoFirestore.OnFoodLoadedListener() {
+            @Override
+            public void onFoodLoaded(Foods food) {
                 if (food != null) {
                     holder.binding.titleTxt.setText(food.getTitle());
                     holder.binding.feeEachItem.setText("$" + (orderItem.quantity * food.getPrice()));
                     holder.binding.totalEachItem.setText(orderItem.quantity + " * $" + food.getPrice());
-
-                    int imageResId = context.getResources().getIdentifier("food_" + food.getImagePath(), "drawable", context.getPackageName());
-                    holder.binding.pic.setImageResource(imageResId != 0 ? imageResId : com.phatlee.food_app.R.drawable.logo);
+                    int imageResId = context.getResources().getIdentifier("food_" + food.getImagePath(),
+                            "drawable", context.getPackageName());
+                    holder.binding.pic.setImageResource(imageResId != 0 ? imageResId : R.drawable.logo);
                 }
-            });
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                // Có thể hiển thị thông báo lỗi nếu cần
+            }
         });
-//        Foods food = foodList.get(position);
-//        holder.binding.foodTitle.setText(food.getTitle());
-//        holder.binding.foodPrice.setText("$" + food.getPrice());
-//        double totalPrice = Integer.parseInt(holder.binding.foodQuantity.getText().toString()) * food.getPrice();
-//        holder.binding.foodTotalPrice.setText("Qty: " + totalPrice);
-//
-//        int imageResId = context.getResources().getIdentifier("food_" + food.getImagePath(), "drawable", context.getPackageName());
-//        holder.binding.foodImage.setImageResource(imageResId != 0 ? imageResId : R.drawable.logo);
     }
 
     @Override
